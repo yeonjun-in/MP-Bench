@@ -1,4 +1,5 @@
-## MP-Bench
+# MP-Bench: Multi-Perspective Failure Attribution Benchmark for Multi-Agent Systems
+
 MP-Bench is a benchmark and evaluation pipeline for multi-perspective failure attribution in multi-agent systems. This repository focuses on two goals:
 
 1. reconstructing raw execution traces plus human step-level annotations into a unified benchmark format
@@ -119,7 +120,7 @@ This is the stage that turns pointer-based metadata into a usable benchmark with
 ## Evaluation Protocol
 The evaluation pipeline in this repository has four stages.
 
-### Failure Attribution Generation
+### 1. Failure Attribution Generation
 `run.sh` runs the failure attribution model over an entire benchmark split.
 
 Command template:
@@ -141,7 +142,7 @@ Important notes:
 - the protocol uses multiple random seeds (typically `0`, `1`, `2`)
 - outputs are written to `results/<model>/<method>/seed_<seed>/<split>/`
 
-### 3. Consolidation
+### 2. Consolidation
 `reasoning_consolidation.py` performs two kinds of consolidation.
 
 Human-side consolidation:
@@ -162,7 +163,7 @@ Example:
 python reasoning_consolidation.py --model_type openai --model_name gpt-5.1
 ```
 
-### 4. Attribution Reasoning Evaluation
+### 3. Attribution Reasoning Evaluation
 Finally, the repository evaluates how well the model's failure attribution reasoning matches the consolidated human annotations using an LLM-as-a-Judge protocol.
 
 Batch command template:
