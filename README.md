@@ -221,8 +221,13 @@ sh run_gpt_annotator_comparison.sh openai_gpt_5.1 automatic gpt-5.1 all_at_once_
 - `results/<model>/<method>/unified_<model_name>/<split>/`: consolidated model predictions
 - `eval_results_<judge_model>/...`: LLM-as-a-Judge comparison results
 
-## Notes
-- This repository is centered on failure attribution, not general task success benchmarking.
-- The most important object for downstream comparison is the per-step failure attribution, not just the final answer correctness.
-- The consolidation step is essential because MP-Bench explicitly treats failure attribution as a multi-perspective problem rather than a single-label classification task.
+## 📝 Citation
 
+```bibtex
+@article{in2026rethinking,
+  title={Rethinking Failure Attribution in Multi-Agent Systems: A Multi-Perspective Benchmark and Evaluation},
+  author={In, Yeonjun and Tanjim, Mehrab and Subramanian, Jayakumar and Kim, Sungchul and Bhattacharya, Uttaran and Kim, Wonjoong and Park, Sangwu and Sarkhel, Somdeb and Park, Chanyoung},
+  journal={arXiv preprint arXiv:2603.25001},
+  year={2026}
+}
+```
