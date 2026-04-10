@@ -105,7 +105,7 @@ This script:
 
 This is the stage that turns pointer-based metadata into a usable benchmark with full logs and aligned step annotations.
 
-## Evaluation Protocol
+## Step 2: Evaluation Protocol
 The evaluation pipeline in this repository has four stages.
 
 ### 1. Failure Attribution Generation
@@ -153,6 +153,8 @@ python reasoning_consolidation.py --model_type openai --model_name gpt-5.1
 
 ### 3. Failure Attribution Evaluation (Section 5.1)
 
+To evaluate the failure attribution capabilities of LLM-based systems, run `failure_attribution_evaluation_display.ipynb`.
+
 ### 4. Attribution Reasoning Evaluation (Section 5.2)
 Finally, the repository evaluates how well the model's failure attribution reasoning matches the consolidated human annotations using an LLM-as-a-Judge protocol.
 
@@ -186,6 +188,8 @@ Outputs are written under:
 ```text
 eval_results_<judge_model>/<model_folder>/<method>/unified_<consolidation_model>/<split>/
 ```
+
+To view the attribution reasoning scores for each LLM-based system, run `failure_attribution_evaluation_display.ipynb`.
 
 ## Recommended End-to-End Workflow
 ```bash
