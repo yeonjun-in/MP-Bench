@@ -209,6 +209,8 @@ python reasoning_consolidation.py --model_type openai --model_name gpt-5.1
 # 5) evaluate model reasoning against consolidated annotations
 sh run_gpt_annotator_comparison.sh openai_gpt_5.1 manual gpt-5.1 all_at_once_taxonomy gpt-5.1
 sh run_gpt_annotator_comparison.sh openai_gpt_5.1 automatic gpt-5.1 all_at_once_taxonomy gpt-5.1
+
+# 6) to view each metric value, run failure_attribution_evaluation_display.ipynb and attribution_reasoning_evaluation_display.ipynb.
 ```
 
 
