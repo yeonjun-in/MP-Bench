@@ -3,8 +3,8 @@ export HF_TOKEN=YOUR_HF_TOKEN
 export CUDA_VISIBLE_DEVICES=$6
 export TOGETHER_NO_BANNER=1
 
-model_type=$1
-model_name=$2
+model_type=$1 # openai, together, claude, qwen
+model_name=$2 # gpt-4.1, gpt-5.1, o3-mini, openai/gpt-oss-120b, claude-sonnet-4-5, Qwen/Qwen3-8B
 method=$3
 seed=$4
 dataset=${5:-manual} # manual, automatic

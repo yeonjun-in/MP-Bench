@@ -6,21 +6,11 @@ MP-Bench is a benchmark and evaluation pipeline for multi-perspective failure at
 2. evaluating LLM-based failure attribution systems against consolidated human annotations
 
 For broader benchmark context and task provenance, see the upstream benchmark reference at [adobe-research/multi-agent-eval-bench](https://github.com/adobe-research/multi-agent-eval-bench).
-<!-- 
-## What This Repository Contains
-- `MP-Bench/`: raw benchmark metadata from multiple annotators
-- `build_annotated_from_log_source.py`: reconstructs full logs from `log_source`
-- `data_processing.sh`: batch preprocessing for all benchmark files
-- `annotated/`: normalized benchmark files with execution history and annotations
-- `masevaluator.py`: core failure attribution evaluator
-- `run_maseval.py`: runs failure attribution on a single benchmark file
-- `run.sh`: batch evaluation over a split
-- `reasoning_consolidation.py`: consolidates multi-annotator and multi-seed outputs
-- `evaluate_gpt_vs_annotator.py`: LLM-as-a-Judge comparison between model outputs and consolidated human annotations
-- `run_gpt_annotator_comparison.sh`: batch scoring script -->
+
 
 ## Dataset Overview
-The raw benchmark entries live under `MP-Bench/<annotator_id>/<split>/<file>.json`.
+The raw benchmark entries are expected under `MP-Bench/<annotator_id>/<split>/<file>.json`. Note that this directory is empty in the repository; you need to download the raw annotated dataset from the following [link](https://github.com/adobe-research/multi-agent-eval-bench/tree/main/MP-Bench) and place the files accordingly.
+
 
 Each raw file contains:
 - `log_source`: pointer to the original conversation trace
@@ -40,7 +30,6 @@ In the current evaluation scripts, the benchmark is split into:
 - `manual`: 169 files
 - `automatic`: 126 files
 
-These counts are the ones used by `run.sh`.
 
 ## Normalized Data Format
 After preprocessing, each example is stored as a JSON file with the following high-level structure:
@@ -71,7 +60,6 @@ This normalized format is what the rest of the pipeline expects when reconstruct
 ```text
 .
 ├── MP-Bench/                         # raw benchmark metadata per annotator
-├── annotated/                        # normalized benchmark files
 ├── build_annotated_from_log_source.py
 ├── data_processing.sh
 ├── masevaluator.py
@@ -101,7 +89,7 @@ HF_TOKEN=...
 
 
 ## Step 1: Build The Benchmark Files
-First, download the upstream benchmark data and place the raw `MP-Bench/` folder at the repository root.
+First, download the raw benchmark data and place the raw `MP-Bench/` folder at the repository root.
 
 Then run:
 
@@ -152,10 +140,10 @@ Human-side consolidation:
 - writes consolidated references to `annotated/unified_<model_name>/<split>/`
 
 Model-side consolidation:
-- reads model predictions across multiple seeds from `results/<backbone>/all_at_once_taxonomy/seed_<seed>/...`
+- reads model predictions across multiple seeds from `results/<backbone>/<method>/seed_<seed>/...`
 - merges repeated failure attributions across seeds
 - uses an LLM to summarize multi-seed reasoning
-- writes consolidated model outputs to `results/<backbone>/all_at_once_taxonomy/unified_<model_name>/<split>/`
+- writes consolidated model outputs to `results/<backbone>/<method>/unified_<model_name>/<split>/`
 
 Example:
 
@@ -163,7 +151,9 @@ Example:
 python reasoning_consolidation.py --model_type openai --model_name gpt-5.1
 ```
 
-### 3. Attribution Reasoning Evaluation
+### 3. Failure Attribution Evaluation (Section 5.1)
+
+### 4. Attribution Reasoning Evaluation (Section 5.2)
 Finally, the repository evaluates how well the model's failure attribution reasoning matches the consolidated human annotations using an LLM-as-a-Judge protocol.
 
 Batch command template:
