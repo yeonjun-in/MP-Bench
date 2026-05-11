@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP-Bench Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f9f8f5;
+    --surface: #ffffff;
+    --border: #e2e0da;
+    --border-strong: #c8c5bc;
+    --text-primary: #1a1915;
+    --text-secondary: #6b6860;
+    --text-muted: #a09d97;
+    --accent: #2c5282;
+    --accent-light: #ebf0f8;
+    --gold: #b7791f;
+    --gold-bg: #fef9ec;
+    --silver: #718096;
+    --silver-bg: #f7fafc;
+    --bronze: #9c6b3c;
+    --bronze-bg: #fdf4ec;
+    --mono: "IBM Plex Mono", monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+    --radius: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141410;
+      --surface: #1e1e18;
+      --border: #2e2e26;
+      --border-strong: #3e3e34;
+      --text-primary: #e8e6df;
+      --text-secondary: #9b9890;
+      --text-muted: #5e5c56;
+      --accent: #7eb3f5;
+      --accent-light: #1a2a3e;
+      --gold: #f6c150;
+      --gold-bg: #1e1a0e;
+      --silver: #a0aec0;
+      --silver-bg: #161820;
+      --bronze: #c8915a;
+      --bronze-bg: #1e150e;
+    }
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 48px 0 36px;
+    background: var(--surface);
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 2px 8px;
+    margin-bottom: 16px;
+    opacity: .85;
+  }
+
+  h1 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 300;
+    max-width: 620px;
+    line-height: 1.65;
+  }
+
+  .header-links {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .header-links a {
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+
+  .header-links a:hover { text-decoration: underline; }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+    flex-wrap: wrap;
+  }
+
+  .controls label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .split-tabs {
+    display: flex;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .split-tab {
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text-secondary);
+    border: none;
+    font-family: var(--sans);
+    transition: all .15s;
+  }
+
+  .split-tab.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .split-tab:not(.active):hover {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* ── Main content ── */
+  main { padding: 32px 0 64px; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex-wrap: wrap;
+  }
+
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-value { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text-primary); }
+  .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-muted);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  thead th:hover { color: var(--text-primary); }
+  thead th.sorted { color: var(--accent); }
+
+  thead th .sort-icon { display: inline; opacity: .4; font-size: 10px; margin-left: 4px; }
+  thead th.sorted .sort-icon { opacity: 1; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--accent-light); }
+
+  tbody tr.rank-1 { background: var(--gold-bg); }
+  tbody tr.rank-2 { background: var(--silver-bg); }
+  tbody tr.rank-3 { background: var(--bronze-bg); }
+
+  td { padding: 13px 16px; font-size: 14px; vertical-align: middle; }
+
+  /* rank column */
+  .td-rank {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    width: 44px;
+    text-align: center;
+  }
+
+  .medal { font-size: 16px; }
+
+  /* model name */
+  .td-model { min-width: 180px; }
+  .model-name { font-weight: 600; color: var(--text-primary); }
+  .model-org { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* score */
+  .td-score {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    text-align: right;
+    width: 110px;
+  }
+
+  .score-manual { color: var(--text-primary); }
+  .score-auto   { color: var(--text-secondary); }
+  .score-na     { color: var(--text-muted); font-size: 13px; }
+
+  /* bar */
+  .score-bar-wrap { width: 120px; }
+  .score-bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width .4s ease;
+  }
+
+  /* links */
+  .td-links { white-space: nowrap; }
+  .link-btn {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--mono);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 2px 7px;
+    text-decoration: none;
+    margin-right: 5px;
+    opacity: .85;
+    transition: opacity .15s;
+  }
+  .link-btn:hover { opacity: 1; }
+
+  /* date */
+  .td-date { font-size: 12px; color: var(--text-muted); font-family: var(--mono); white-space: nowrap; }
+
+  /* empty state */
+  .empty-state {
+    padding: 60px 32px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .empty-state h3 { font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 400; }
+  .empty-state p { font-size: 14px; line-height: 1.7; }
+  .empty-state a { color: var(--accent); }
+
+  /* submit CTA */
+  .submit-cta {
+    margin-top: 24px;
+    padding: 18px 24px;
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .submit-cta p { font-size: 14px; color: var(--text-secondary); }
+  .submit-cta a {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .submit-cta a:hover { opacity: .9; }
+
+  /* footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="badge">Benchmark</div>
+    <h1>MP-Bench Leaderboard</h1>
+    <p class="subtitle">
+      Multi-perspective failure attribution in multi-agent systems.<br>
+      Ranked by nDCG@5 (Exp) on <strong>manual</strong> and <strong>automatic</strong> annotation splits.
+    </p>
+    <div class="header-links">
+      <a href="https://arxiv.org/abs/2603.25001" target="_blank">📄 Paper</a>
+      <a href="https://github.com/yeonjun-in/MP-Bench" target="_blank">💻 Code</a>
+      <a href="https://github.com/yeonjun-in/MP-Bench/blob/main/submissions/README.md" target="_blank">📥 Submit</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <div class="controls">
+      <label>Split:</label>
+      <div class="split-tabs">
+        <button class="split-tab active" data-split="manual"  onclick="setSplit('manual')">Manual (169)</button>
+        <button class="split-tab"        data-split="automatic" onclick="setSplit('automatic')">Automatic (126)</button>
+      </div>
+    </div>
+
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat"><span class="stat-value" id="stat-models">—</span><span class="stat-label">Models</span></div>
+      <div class="stat"><span class="stat-value" id="stat-best">—</span><span class="stat-label">Best nDCG@5</span></div>
+      <div class="stat"><span class="stat-value" id="stat-updated">—</span><span class="stat-label">Last updated</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="lb-table">
+        <thead>
+          <tr>
+            <th class="td-rank">#</th>
+            <th onclick="sortBy('model_name')">Model <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('score')" class="sorted">nDCG@5 <span class="sort-icon">↓</span></th>
+            <th>Score bar</th>
+            <th onclick="sortBy('submitted_at')">Date <span class="sort-icon">↕</span></th>
+            <th>Links</th>
+          </tr>
+        </thead>
+        <tbody id="lb-body">
+          <tr><td colspan="6"><div class="empty-state"><h3>Loading…</h3></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="submit-cta">
+      <p>Have a new model to evaluate? Follow the submission guide and open a PR — results are computed automatically.</p>
+      <a href="https://github.com/yeonjun-in/MP-Bench/blob/main/submissions/README.md" target="_blank">Submit your model →</a>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <span>MP-Bench · </span>
+    <a href="https://arxiv.org/abs/2603.25001" target="_blank">In et al., 2026</a>
+    <span> · </span>
+    <a href="https://github.com/yeonjun-in/MP-Bench" target="_blank">GitHub</a>
+    <span id="footer-updated" style="float:right"></span>
+  </div>
+</footer>
+
+<script>
+const LEADERBOARD_URL = "https://raw.githubusercontent.com/yeonjun-in/MP-Bench/main/leaderboard.json";
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+let allData = [];
+let currentSplit = "manual";
+let sortKey = "score";
+let sortAsc = false;
+
+async function init() {
+  try {
+    const res = await fetch(LEADERBOARD_URL + "?t=" + Date.now());
+    allData = await res.json();
+    render();
+  } catch(e) {
+    document.getElementById("lb-body").innerHTML = `
+      <tr><td colspan="6"><div class="empty-state">
+        <h3>Could not load leaderboard</h3>
+        <p>Make sure <code>leaderboard.json</code> is committed to the main branch and GitHub Pages is enabled.</p>
+      </div></td></tr>`;
+  }
+}
+
+function getScore(entry) {
+  return currentSplit === "manual"
+    ? entry.manual_ndcg5
+    : entry.automatic_ndcg5;
+}
+
+function setSplit(split) {
+  currentSplit = split;
+  document.querySelectorAll(".split-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.split === split);
+  });
+  sortKey = "score";
+  sortAsc = false;
+  render();
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = false; }
+  render();
+}
+
+function render() {
+  const data = [...allData].sort((a, b) => {
+    let av, bv;
+    if (sortKey === "score") {
+      av = getScore(a) ?? -1;
+      bv = getScore(b) ?? -1;
+    } else if (sortKey === "model_name") {
+      return sortAsc
+        ? a.model_name.localeCompare(b.model_name)
+        : b.model_name.localeCompare(a.model_name);
+    } else if (sortKey === "submitted_at") {
+      av = a.submitted_at || "";
+      bv = b.submitted_at || "";
+      return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    }
+    return sortAsc ? av - bv : bv - av;
+  });
+
+  // Stats
+  const validScores = data.map(getScore).filter(s => s != null);
+  document.getElementById("stat-models").textContent = data.length;
+  document.getElementById("stat-best").textContent =
+    validScores.length ? validScores[0].toFixed(4) : "—";
+  const dates = data.map(d => d.submitted_at).filter(Boolean).sort().reverse();
+  document.getElementById("stat-updated").textContent = dates[0] || "—";
+  document.getElementById("footer-updated").textContent = dates[0] ? "Updated " + dates[0] : "";
+
+  const maxScore = Math.max(...validScores, 0);
+
+  const tbody = document.getElementById("lb-body");
+
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+      <h3>No submissions yet</h3>
+      <p>Be the first to <a href="https://github.com/yeonjun-in/MP-Bench/blob/main/submissions/README.md">submit your model</a>!</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map((entry, idx) => {
+    const score = getScore(entry);
+    const scoreTxt = score != null ? score.toFixed(4) : "—";
+    const barW = score != null && maxScore > 0 ? (score / maxScore * 100).toFixed(1) : 0;
+    const rankCls = idx < 3 ? ` class="rank-${idx+1}"` : "";
+    const rankDisp = idx < 3 ? `<span class="medal">${MEDALS[idx]}</span>` : (idx + 1);
+
+    const paperBtn = entry.paper_url
+      ? `<a class="link-btn" href="${entry.paper_url}" target="_blank">paper</a>` : "";
+    const codeBtn = entry.code_url
+      ? `<a class="link-btn" href="${entry.code_url}" target="_blank">code</a>` : "";
+
+    return `<tr${rankCls}>
+      <td class="td-rank">${rankDisp}</td>
+      <td class="td-model">
+        <div class="model-name">${esc(entry.model_name)}</div>
+        <div class="model-org">${esc(entry.organization || "")}</div>
+      </td>
+      <td class="td-score">
+        <span class="${score != null ? "score-manual" : "score-na"}">${scoreTxt}</span>
+      </td>
+      <td class="score-bar-wrap">
+        <div class="score-bar-bg">
+          <div class="score-bar-fill" style="width:${barW}%"></div>
+        </div>
+      </td>
+      <td class="td-date">${entry.submitted_at || "—"}</td>
+      <td class="td-links">${paperBtn}${codeBtn}</td>
+    </tr>`;
+  }).join("");
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+}
+
+init();
+</script>
+</body>
+</html>

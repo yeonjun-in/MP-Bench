@@ -1,0 +1,7 @@
+{
+  "model_name": "GPT-4o",
+  "organization": "OpenAI",
+  "paper_url": "https://arxiv.org/abs/2303.08774",
+  "code_url": "",
+  "description": "GPT-4o evaluated with all_at_once_taxonomy prompting"
+}

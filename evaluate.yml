@@ -1,0 +1,167 @@
+name: Evaluate Submission
+
+on:
+  pull_request:
+    paths:
+      - "submissions/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      # -----------------------------------------------------------------------
+      # Detect which submission folder was added/changed
+      # -----------------------------------------------------------------------
+      - name: Detect changed submission
+        id: detect
+        run: |
+          # Find all changed files under submissions/
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+                    | grep '^submissions/' | head -n1)
+
+          if [ -z "$CHANGED" ]; then
+            echo "No submission files changed."
+            exit 1
+          fi
+
+          # Extract the model directory (submissions/<model_name>/...)
+          MODEL_DIR=$(echo "$CHANGED" | cut -d'/' -f1-2)
+          echo "model_dir=$MODEL_DIR" >> $GITHUB_OUTPUT
+          echo "Detected submission: $MODEL_DIR"
+
+      # -----------------------------------------------------------------------
+      # Validate required files exist
+      # -----------------------------------------------------------------------
+      - name: Validate submission files
+        run: |
+          MODEL_DIR=${{ steps.detect.outputs.model_dir }}
+
+          for f in metadata.json predictions_manual.json predictions_automatic.json; do
+            if [ ! -f "$MODEL_DIR/$f" ]; then
+              echo "ERROR: Missing required file: $MODEL_DIR/$f"
+              echo "See submissions/README.md for the required format."
+              exit 1
+            fi
+          done
+          echo "All required files present."
+
+      # -----------------------------------------------------------------------
+      # Set up Python
+      # -----------------------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # -----------------------------------------------------------------------
+      # Download ground truth (consolidated annotations)
+      # The annotated/unified_* folder is NOT committed to the repo.
+      # It lives in the gh-pages branch or as a release artifact.
+      # Here we pull it from a separate private release asset.
+      # -----------------------------------------------------------------------
+      - name: Download ground truth
+        run: |
+          # The annotated ground truth is stored as a release artifact.
+          # Update GROUND_TRUTH_URL in repo secrets to point to your release zip.
+          if [ -z "${{ secrets.GROUND_TRUTH_URL }}" ]; then
+            echo "ERROR: GROUND_TRUTH_URL secret is not set."
+            echo "Upload annotated/unified_<model>/ as a release artifact and set the secret."
+            exit 1
+          fi
+          curl -L "${{ secrets.GROUND_TRUTH_URL }}" -o ground_truth.tar.gz
+          tar -xzf ground_truth.tar.gz
+          # Expect: annotated/unified_<model>/manual/*.json and .../automatic/*.json
+
+      # -----------------------------------------------------------------------
+      # Resolve the unified annotated directory (picks first match)
+      # -----------------------------------------------------------------------
+      - name: Resolve annotated dir
+        id: annotated
+        run: |
+          ANNOTATED_DIR=$(ls -d annotated/unified_* 2>/dev/null | head -n1)
+          if [ -z "$ANNOTATED_DIR" ]; then
+            echo "ERROR: No annotated/unified_* directory found after extraction."
+            exit 1
+          fi
+          echo "annotated_dir=$ANNOTATED_DIR" >> $GITHUB_OUTPUT
+          echo "Using ground truth: $ANNOTATED_DIR"
+
+      # -----------------------------------------------------------------------
+      # Run evaluation
+      # -----------------------------------------------------------------------
+      - name: Evaluate
+        id: eval
+        run: |
+          python evaluate_submission.py \
+            --submission_dir "${{ steps.detect.outputs.model_dir }}" \
+            --annotated_dir  "${{ steps.annotated.outputs.annotated_dir }}" \
+            --leaderboard    leaderboard.json \
+            2>&1 | tee eval_output.txt
+
+          # Capture summary lines for PR comment
+          SUMMARY=$(grep -A10 "^--- SUMMARY ---" eval_output.txt || echo "Evaluation failed — see logs.")
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # -----------------------------------------------------------------------
+      # Post results as PR comment
+      # -----------------------------------------------------------------------
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `${{ steps.eval.outputs.summary }}`;
+            const body = [
+              "## 🏆 MP-Bench Evaluation Results",
+              "",
+              summary,
+              "",
+              "---",
+              "*Metric: nDCG@5 (Exp) — higher is better*",
+              "*Leaderboard will update automatically when this PR is merged.*",
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      # -----------------------------------------------------------------------
+      # On merge to main: commit updated leaderboard.json
+      # (This step only runs after a PR is merged, not on the PR itself)
+      # -----------------------------------------------------------------------
+
+  update-leaderboard:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: []  # Runs independently on push to main
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Commit leaderboard.json if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet leaderboard.json; then
+            echo "leaderboard.json unchanged."
+          else
+            git add leaderboard.json
+            git commit -m "chore: update leaderboard [skip ci]"
+            git push
+          fi
