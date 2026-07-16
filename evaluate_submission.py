@@ -25,19 +25,43 @@ from datetime import datetime, timezone
 # nDCG@5 with exponential gain
 # ---------------------------------------------------------------------------
 
-def dcg_at_k(ranked_labels, k=5):
-    score = 0.0
-    for i, rel in enumerate(ranked_labels[:k]):
-        score += (2 ** rel - 1) / math.log2(i + 2)
-    return score
+def make_rel_map_from_gt(gt):
+    """
+    Convert GT ranking into graded relevance:
+    first item gets len(gt), last gets 1.
+    """
+    n = len(gt)
+    return {item: n - i for i, item in enumerate(gt)}  # 8..1
 
+def dcg_at_k(ranking, k, rel_map, gain="exp"):
+    """
+    DCG@k with either:
+      - exp gain: 2^rel - 1  (default in IR)
+      - linear gain: rel
+    Items not in rel_map get rel=0.
+    """
+    s = 0.0
+    for i, item in enumerate(ranking[:k], start=1):
+        rel = rel_map.get(item, 0)
+        if gain == "exp":
+            g = (2 ** rel) - 1
+        elif gain == "linear":
+            g = rel
+        else:
+            raise ValueError("gain must be 'exp' or 'linear'")
+        s += g / math.log2(i + 1)
+    return s
 
-def ndcg_at_k(ranked_labels, all_labels, k=5):
-    ideal = sorted(all_labels, reverse=True)
-    idcg = dcg_at_k(ideal, k)
-    if idcg == 0.0:
-        return None  # no positive labels -> skip
-    return dcg_at_k(ranked_labels, k) / idcg
+def ndcg_at_k(pred, gt, k, gain="exp"):
+    if len(gt) == 0:
+        return 0.0
+    rel_map = make_rel_map_from_gt(gt)
+
+    dcg = dcg_at_k(pred, k, rel_map, gain=gain)
+    # Ideal ranking is GT order itself (already best-to-worst)
+    idcg = dcg_at_k(gt, k, rel_map, gain=gain)
+
+    return 0.0 if idcg == 0 else dcg / idcg
 
 
 # ---------------------------------------------------------------------------
@@ -84,12 +108,8 @@ def build_ground_truth(raw_bench_dir, split):
 
     gt = {}
     for file_id, step_votes in votes.items():
-        n_steps = max(step_votes.keys()) + 1
-        labels = []
-        for i in range(n_steps):
-            v = step_votes.get(i, [0])
-            labels.append(1 if sum(v) * 2 >= len(v) else 0)  # tie -> 1
-        gt[file_id] = labels
+        sorted_step_votes = dict(sorted(step_votes.items(), key=lambda item: (-len(item[1]), item[0])))
+        gt[file_id] = list(sorted_step_votes.keys())
     return gt
 
 
@@ -121,12 +141,8 @@ def evaluate_split(preds, ground_truth, k=5):
             scores[file_id] = None
             continue
 
-        ranked_steps = [s for s in preds[file_id] if 0 <= s < len(gt_labels)]
-        seen, ranked_labels = set(), []
-        for s in ranked_steps:
-            if s not in seen:
-                ranked_labels.append(gt_labels[s])
-                seen.add(s)
+        ranked_labels = preds[file_id]
+        gt_labels = ground_truth[file_id]
 
         scores[file_id] = ndcg_at_k(ranked_labels, gt_labels, k=k)
 

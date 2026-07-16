@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "model_name": "All-at-Once GPT-4.1",
+    "organization": "Penn State University",
+    "paper_url": "",
+    "code_url": "",
+    "description": "All-at-Once GPT-4.1",
+    "manual_ndcg5": 0.445,
+    "automatic_ndcg5": 0.679,
+    "manual_num_scored": 157,
+    "automatic_num_scored": 120,
+    "submitted_at": "2026-07-16"
+  },
+  {
+    "model_name": "All-at-Once GPT-5.1",
+    "organization": "Penn State University",
+    "paper_url": "",
+    "code_url": "",
+    "description": "All-at-Once GPT-5.1",
+    "manual_ndcg5": 0.385,
+    "automatic_ndcg5": 0.769,
+    "manual_num_scored": 157,
+    "automatic_num_scored": 120,
+    "submitted_at": "2026-07-16"
+  },
+  {
+    "model_name": "All-at-Once Claude Sonnet-4.5",
+    "organization": "Penn State University",
+    "paper_url": "",
+    "code_url": "",
+    "description": "All-at-Once Claude Sonnet-4.5",
+    "manual_ndcg5": 0.432,
+    "automatic_ndcg5": 0.788,
+    "manual_num_scored": 157,
+    "automatic_num_scored": 120,
+    "submitted_at": "2026-07-16"
+  },
+  {
+    "model_name": "All-at-Once Qwen3-8B",
+    "organization": "Penn State University",
+    "paper_url": "",
+    "code_url": "",
+    "description": "All-at-Once Qwen3-8B",
+    "manual_ndcg5": 0.317,
+    "automatic_ndcg5": 0.676,
+    "manual_num_scored": 157,
+    "automatic_num_scored": 120,
+    "submitted_at": "2026-07-16"
+  },
+  {
+    "model_name": "All-at-Once GPT-oss-120B",
+    "organization": "Penn State University",
+    "paper_url": "",
+    "code_url": "",
+    "description": "All-at-Once GPT-oss-120B",
+    "manual_ndcg5": 0.449,
+    "automatic_ndcg5": 0.696,
+    "manual_num_scored": 157,
+    "automatic_num_scored": 120,
+    "submitted_at": "2026-07-16"
+  },
+  {
+    "model_name": "Sample Submission",
+    "organization": "",
+    "paper_url": "",
+    "code_url": "",
+    "description": "Sample submission",
+    "manual_ndcg5": 0.0302,
+    "automatic_ndcg5": 0.4014,
+    "manual_num_scored": 157,
+    "automatic_num_scored": 120,
+    "submitted_at": "2026-07-16"
+  }
+]

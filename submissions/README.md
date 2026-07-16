@@ -63,8 +63,6 @@ $$\text{nDCG@5} = \frac{\text{DCG@5}}{\text{IDCG@5}}, \quad \text{DCG@5} = \sum_
 
 where `rel_i = 1` if the step at rank `i` is annotated as a failure step, `0` otherwise.
 
-Ground truth failure labels come from `annotated/unified_*/` (consolidated human annotations).
-
 ---
 
 ## Example Submission
